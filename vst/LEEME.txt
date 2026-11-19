@@ -1,0 +1,32 @@
+TapeHead — plugin VST3 / AU / Standalone
+=================================================
+Previo de consola de multipista de casete de los 80–90: saturación de los amplificadores
+operacionales de la entrada, sin artefactos de cinta (ni wow & flutter, ni ruido, ni pérdida de agudos de los cabezales).
+
+INSTALAR
+- Windows: copia la carpeta  VST3/TapeHead.vst3  a
+      C:\Program Files\Common Files\VST3\
+  La app independiente (sin DAW) es  Standalone/TapeHead.exe
+  Si Windows avisa («Windows protegió su PC»): Más información → Ejecutar de todas formas.
+- Mac: copia  VST3/TapeHead.vst3  a  /Library/Audio/Plug-Ins/VST3/
+       y  AU/TapeHead.component  a  /Library/Audio/Plug-Ins/Components/
+  La app independiente es  Standalone/TapeHead.app
+  Si macOS dice que está dañado o no se abre, en Terminal:
+      xattr -cr "/Library/Audio/Plug-Ins/VST3/TapeHead.vst3"
+      xattr -cr "/Library/Audio/Plug-Ins/Components/TapeHead.component"
+Abre de nuevo el DAW para que lo detecte.
+
+USAR
+1. Pon TapeHead en una pista (guitarra, bajo, batería, voz, sintes…) o en un bus.
+2. DRIVE es el mando principal: hasta 3 engorda y calienta; de 4 a 7 es un overdrive arenoso;
+   de 8 a 10, fuzz aplastado. Con AUTO GAIN encendido el volumen se mantiene aunque lo subas.
+3. GRAVES y AGUDOS son la EQ del canal (±10 dB). Van entre el previo y el fader, como en la consola:
+   subir graves también engorda la distorsión del fader.
+4. MIX mezcla con la señal original (para batería, prueba 35–70 %). INPUT y OUTPUT ajustan niveles.
+5. Presets: toca el casete o el contador para el menú (General, Guitarra, Bajo, Batería);
+   ◀◀ y ▶▶ pasan de uno en uno; GUARDAR crea uno tuyo (Documentos/TapeHead/User Presets) y BORRAR lo quita.
+Latencia: 32 muestras (el DAW la compensa solo).
+
+ACTUALIZACIONES
+Al abrir la ventana del plugin, como mucho una vez al día, se comprueba en GitHub si hay una versión nueva.
+Si la hay, aparece abajo una franja «Nueva versión… · Descargar». Con «✕» no vuelve a avisar de esa versión.

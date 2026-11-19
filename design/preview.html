@@ -1,0 +1,8 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TapeHead · vista previa</title>
+<style>body{margin:0;background:#17130f;padding:24px;font-family:system-ui}#host{max-width:900px;margin:auto}</style></head><body><div id="host"></div>
+<script src="../dsp/tapehead.js"></script><script src="../web/th-ui.js"></script>
+<script>
+var S = Object.assign({}, TapeHead.DEFAULTS, TapeHead.PRESETS[10].p, { on: true });
+var ui = TapeHeadUI.mount(document.getElementById('host'), { state: S, presets: TapeHead.PRESETS, idleSpin: 0.5, footer: 'v1.0.0' });
+setInterval(function () { var l = -12 + Math.random() * 12; ui.meter(l, l > 0.5); }, 140);
+</script></body></html>
