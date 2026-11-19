@@ -4,7 +4,7 @@
    var ui = TapeHeadUI.mount(contenedor, {
      state: { drive, bass, treble, mix, auto, on, ... },          // se modifica en sitio
      presets: TapeHead.PRESETS,
-     extraKeys: [{ id, label, title, latch, get(), set(v) }],   // teclas de transporte adicionales (opcional)
+     extraKeys: [{ label, small, title, get(), text(), click() }],  // teclas extra (opcional): get() = hundida; text() = HTML variable
      onChange(clave, valor, enDirecto)                    // enDirecto = arrastrando un mando
    });
    ui.update()          vuelve a pintar desde el estado
@@ -233,7 +233,7 @@
       update: function () {
         for (var k in K) K[k].update();
         bAuto.classList.toggle('on', !!S.auto); el.querySelector('.ag').classList.toggle('on', !!S.auto);
-        extra.forEach(function (x) { if (x.k.get) x.b.classList.toggle('on', !!x.k.get()); if (x.k.disabled) x.b.disabled = !!x.k.disabled(); });
+        extra.forEach(function (x) { if (x.k.text) x.b.innerHTML = x.k.text(); if (x.k.get) x.b.classList.toggle('on', !!x.k.get()); if (x.k.disabled) x.b.disabled = !!x.k.disabled(); });
         el.classList.toggle('off', S.on === false);
         // ¿coincide con un preset?
         var hit = -1; presets.forEach(function (p, i) { var q = p.p; if (Math.abs(q.drive - S.drive) < 1e-6 && Math.abs((q.bass || 0) - S.bass) < 1e-6 && Math.abs((q.treble || 0) - S.treble) < 1e-6 && Math.abs((q.mix != null ? q.mix : 1) - S.mix) < 1e-6) hit = i; });

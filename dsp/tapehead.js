@@ -59,7 +59,8 @@ function tpTapeHead(root) {
     for (k = 0; k < N; k++) h[k] /= s;
     return h;
   };
-  var FIR = T.makeFir();
+  var FIR = T.makeFir(), TAPS = T.TAPS, XL = 40, RL = TAPS + 4, PH = [];
+  (function () { for (var p = 0; p < T.OS; p++) { var a = []; for (var j = 0; p + T.OS * j < TAPS; j++) a.push(FIR[p + T.OS * j]); PH.push(new Float64Array(a)); } })();
 
   // ------------------------------------------------------------ filtros (RBJ, forma directa I en doble precisión)
   function Biquad() { this.b0 = 1; this.b1 = 0; this.b2 = 0; this.a1 = 0; this.a2 = 0; this.x1 = 0; this.x2 = 0; this.y1 = 0; this.y2 = 0; }
@@ -102,8 +103,9 @@ function tpTapeHead(root) {
   function Channel(sr) {
     var fs = sr * T.OS;
     this.sr = sr; this.fs = fs;
-    this.xh = new Float64Array(64); this.xi = 0;          // historia de entrada (base) para el FIR polifásico
-    this.ring = new Float64Array(256); this.ri = 0;        // historia a ×4 para el diezmado
+    // historias en espejo (cada muestra se escribe dos veces) para leerlas seguidas sin índices circulares
+    this.xh = new Float64Array(2 * XL); this.xw = 0;       // entrada (base) para el FIR polifásico
+    this.ring = new Float64Array(2 * RL); this.rw = 0;     // muestras a ×4 para el diezmado
     this.dly = new Float64Array(T.LATENCY + 1); this.di = 0;
     this.hpIn = new OnePoleHP(20, fs); this.hpOut = new OnePoleHP(10, fs);
     this.lsPre = new Biquad(); this.pkPre = new Biquad(); this.lp1 = new OnePoleLP(20000, fs);
@@ -134,20 +136,22 @@ function tpTapeHead(root) {
     x = R3 * opamp(x / R3, W3, C3);                         // 3) bus de mezcla
     return this.hpOut.run(x);
   };
-  // procesa una muestra base (ya con la ganancia de entrada); devuelve la salida húmeda retrasada LATENCY muestras
+  // procesa una muestra base (ya con la ganancia de entrada); devuelve la salida húmeda retrasada LATENCY muestras.
+  // Mismas sumas y en el mismo orden que TapeDSP.h (resultados idénticos), con lecturas seguidas para ir más rápido.
   Channel.prototype.tick = function (x) {
-    var h = FIR, OS = T.OS, xh = this.xh, xi = this.xi = (this.xi + 1) & 63, p, j, acc;
-    xh[xi] = x * HEAD;
+    var OS = T.OS, xh = this.xh, ring = this.ring, p, j, k, acc, w, b;
+    w = this.xw = (this.xw + XL - 1) % XL;                // escribe hacia atrás: xh[w + j] = x[n − j]
+    xh[w] = xh[w + XL] = x * HEAD;
     for (p = 0; p < OS; p++) {
+      var ph = PH[p], n = ph.length;
       acc = 0;
-      for (j = 0; p + OS * j < T.TAPS; j++) acc += h[p + OS * j] * xh[(xi - j) & 63];
-      var ri = this.ri = (this.ri + 1) & 255;
-      this.ring[ri] = this.chain(acc * OS);
+      for (j = 0; j < n; j++) acc += ph[j] * xh[w + j];
+      var y = this.chain(acc * OS), r = this.rw = (this.rw + RL - 1) % RL;
+      ring[r] = ring[r + RL] = y;
     }
     // salida en el instante 4n (el primero de los cuatro): 3 posiciones antes de la última
-    var base = this.ri - 3, ring = this.ring, k;
-    acc = 0;
-    for (k = 0; k < T.TAPS; k++) acc += h[k] * ring[(base - k) & 255];
+    b = this.rw + 3; acc = 0;
+    for (k = 0; k < TAPS; k++) acc += FIR[k] * ring[b + k];
     return acc / HEAD;
   };
   Channel.prototype.delayDry = function (x) {      // seco alineado con la latencia
